@@ -89,19 +89,22 @@ class ChatResponse(BaseModel):
 async def chat(req: ChatRequest):
     # 1. Safety analysis
     safety = await safety_detector.check(req.message)
+    safety = convert_numpy(safety)   # ✅ Convert BEFORE critical check
+
     if not safety["safe"] and safety["risk_level"] == "critical":
         return ChatResponse(
-        response="I'm concerned about you. Please reach out to the Suicide & Crisis Lifeline at 988. Would you like me to help you find local resources?",
-        conversation_id=req.conversation_id or str(uuid.uuid4()),
-        emotion={},
-        safety=safety
-    )
+            response="I'm concerned about you. Please reach out to the Suicide & Crisis Lifeline at 988.",
+            conversation_id=req.conversation_id or str(uuid.uuid4()),
+            emotion={},
+            safety=safety   # ✅ Now fully serializable
+        )
 
-    
     # 2. Emotion detection
     emotion = await emotion_analyzer.analyze(req.message)
+    emotion = convert_numpy(emotion)   # ✅ Convert emotion
 
-    from app.utils.helpers import convert_numpy   # ensure import is at top of file
+
+     # ensure import is at top of file
     emotion = convert_numpy(emotion)
     safety = convert_numpy(safety) 
     
