@@ -1,19 +1,18 @@
 services:
-  # Web API service
   - type: web
     name: hopemo
     runtime: python
-    plan: free                         # Use 'starter' or 'professional' for production
+    plan: free
     autoDeploy: true
     buildCommand: pip install -r requirements.txt
     startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: OPENAI_API_KEY
-        sync: false                    # You'll set this manually in the dashboard
+        sync: false
       - key: HF_TOKEN
-        sync: false                    # Optional but recommended
+        sync: false
       - key: SECRET_KEY
-        generateValue: true            # Render will generate a random secret
+        generateValue: true
       - key: ENVIRONMENT
         value: production
       - key: OPENAI_MODEL
@@ -22,35 +21,11 @@ services:
         value: /data/chromadb
       - key: PYTHONPATH
         value: /app
-      - key: DATABASE_URL               # PostgreSQL connection string
+      - key: DATABASE_URL
         fromDatabase:
-          name: hopemo-db              # Must match the database name you create
+          name: hopemo-db
           property: connectionString
     disk:
       - name: chroma-data
         mountPath: /data
-        sizeGB: 1                      # Adjust if you have many PDFs
-
-  # (Optional) Background worker for ingestion, reflections, etc.
-  # Uncomment if you plan to run background tasks separately
-  # - type: worker
-  #   name: hopemo-worker
-  #   runtime: python
-  #   plan: free
-  #   buildCommand: pip install -r requirements.txt
-  #   startCommand: python -m app.workers.main
-  #   envVars:
-  #     - key: OPENAI_API_KEY
-  #       sync: false
-  #     - key: HF_TOKEN
-  #       sync: false
-  #     - key: DATABASE_URL
-  #       fromDatabase:
-  #         name: hopemo-db
-  #         property: connectionString
-  #     - key: CHROMA_PERSIST_DIR
-  #       value: /data/chromadb
-  #   disk:
-  #     - name: chroma-data
-  #       mountPath: /data
-  #       sizeGB: 1
+        sizeGB: 1
