@@ -38,6 +38,12 @@ hopfield_memory = HopfieldAssociativeMemory(vector_store)
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
 
+@app.post("/admin/ingest")
+async def admin_ingest():
+    from scripts.ingest_knowledge import main
+    await main()
+    return {"status": "Ingestion started"}
+
 @app.exception_handler(openai.AuthenticationError)
 async def openai_authentication_exception_handler(request, exc):
     return JSONResponse(
