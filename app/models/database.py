@@ -3,16 +3,34 @@ from sqlalchemy import create_engine, Column, Integer, String, Float, DateTime, 
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 import uuid
+import os
 from datetime import datetime
+# Read DATABASE_URL from environment (Render sets this automatically)
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/hopemo.db")
 
-DATABASE_URL = "sqlite:///./data/hopemo.db"  # Change to PostgreSQL for production
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+# Configure engine based on database type
+if DATABASE_URL.startswith("postgresql"):
+    # PostgreSQL (production on Render)
+    engine = create_engine(
+        DATABASE_URL,
+        pool_pre_ping=True,
+        pool_size=5,
+        max_overflow=10,
+        echo=False
+    )
+else:
+    # SQLite (local development)
+    engine = create_engine(
+        DATABASE_URL,
+        connect_args={"check_same_thread": False},
+        echo=False
+    )
+
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def generate_uuid():
     return str(uuid.uuid4())
-
 class User(Base):
     __tablename__ = "users"
     id = Column(String, primary_key=True, default=generate_uuid)

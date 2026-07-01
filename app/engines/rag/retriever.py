@@ -4,16 +4,26 @@ from chromadb.config import Settings
 import asyncio
 from typing import List
 from concurrent.futures import ThreadPoolExecutor
+import logging
 from app.config import settings
 from app.engines.memory.hopfield import HopfieldAssociativeMemory
 import app.services.embedding
 
+logger = logging.getLogger(__name__)
+
 class VectorStore:
     def __init__(self):
-        self.client = chromadb.PersistentClient(
-            path=settings.CHROMA_PERSIST_DIR,
-            settings=Settings(anonymized_telemetry=False)
-        )
+        chroma_settings = Settings(anonymized_telemetry=False)
+        try:
+            self.client = chromadb.PersistentClient(
+                path=settings.CHROMA_PERSIST_DIR,
+                settings=chroma_settings
+            )
+            self.persistent = True
+        except Exception:
+            logger.exception("Persistent ChromaDB failed to start; using in-memory ChromaDB")
+            self.client = chromadb.EphemeralClient(settings=chroma_settings)
+            self.persistent = False
         self.memory_collection = self.client.get_or_create_collection("user_memories")
         self.knowledge_collection = self.client.get_or_create_collection("knowledge_base")
         self.executor = ThreadPoolExecutor(max_workers=4)

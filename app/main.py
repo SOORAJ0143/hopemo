@@ -1,11 +1,15 @@
 # app/main.py
+from app.utils.helpers import convert_numpy
 from fastapi import FastAPI, HTTPException, Depends
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 from typing import Optional
 import asyncio
 import uuid
+import openai
+import logging
+import json
 
 from app.config import settings
 from app.engines.emotion.detector import EmotionalAnalyzer
@@ -17,6 +21,8 @@ from app.engines.response.validator import ResponseValidator
 from app.engines.analytics.tracker import AnalyticsTracker
 from app.engines.memory.hopfield import HopfieldAssociativeMemory
 from app.models.database import SessionLocal, Conversation, Message
+
+logger = logging.getLogger(__name__)
 
 # Initialize components
 emotion_analyzer = EmotionalAnalyzer()
@@ -31,6 +37,36 @@ analytics_tracker = AnalyticsTracker()
 hopfield_memory = HopfieldAssociativeMemory(vector_store)
 
 app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
+
+@app.exception_handler(openai.AuthenticationError)
+async def openai_authentication_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": "OpenAI authentication failed. Check OPENAI_API_KEY in your .env file, then restart the server."
+        },
+    )
+
+@app.exception_handler(openai.RateLimitError)
+async def openai_rate_limit_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=429,
+        content={"detail": "OpenAI rate limit reached. Try again later or check your OpenAI account limits."},
+    )
+
+@app.exception_handler(openai.APIConnectionError)
+async def openai_connection_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=503,
+        content={"detail": "Could not connect to OpenAI. Check your internet connection and try again."},
+    )
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request, exc):
+    logger.exception("Unhandled application error")
+    if settings.ENVIRONMENT == "development":
+        return JSONResponse(status_code=500, content={"detail": str(exc)})
+    return JSONResponse(status_code=500, content={"detail": "Internal Server Error"})
 
 class ChatRequest(BaseModel):
     message: str
@@ -49,14 +85,19 @@ async def chat(req: ChatRequest):
     safety = await safety_detector.check(req.message)
     if not safety["safe"] and safety["risk_level"] == "critical":
         return ChatResponse(
-            response="I'm concerned about you. Please reach out to the Suicide & Crisis Lifeline at 988. Would you like me to help you find local resources?",
-            conversation_id=req.conversation_id or str(uuid.uuid4()),
-            emotion={},
-            safety=safety
-        )
+        response="I'm concerned about you. Please reach out to the Suicide & Crisis Lifeline at 988. Would you like me to help you find local resources?",
+        conversation_id=req.conversation_id or str(uuid.uuid4()),
+        emotion={},
+        safety=safety
+    )
+
     
     # 2. Emotion detection
     emotion = await emotion_analyzer.analyze(req.message)
+
+    from app.utils.helpers import convert_numpy   # ensure import is at top of file
+    emotion = convert_numpy(emotion)
+    safety = convert_numpy(safety) 
     
     # 3. Get embedding
     from app.services.embedding import get_embedding
@@ -81,29 +122,43 @@ async def chat(req: ChatRequest):
         response_text = "I want to ensure our conversation remains helpful. Could you rephrase or let me know how I can better support you?"
     
     # 9. Update memory (store embedding + metadata)
-    await vector_store.upsert(req.user_id, req.message, query_embedding, {"type": "user_message", "emotion": emotion})
-    # Also store in Hopfield associative memory
-    await hopfield_memory.add_memory(req.user_id, req.message, query_embedding, {"type": "user_message"})
+    try:
+        metadata = {
+    "type": "user_message",
+    "primary_emotion": emotion.get("primary_emotion", ""),
+    "intensity": float(emotion.get("intensity", 0.0)),
+    "emotion_json": json.dumps(emotion)
+}
+        await vector_store.upsert(req.user_id, req.message, query_embedding, metadata)
+        # Also store in Hopfield associative memory
+        await hopfield_memory.add_memory(req.user_id, req.message, query_embedding, {"type": "user_message", "text": req.message})
+    except Exception:
+        logger.exception("Failed to store vector memory")
     
     # 10. Update analytics
-    await analytics_tracker.update(req.user_id, emotion)
+    try:
+        await analytics_tracker.update(req.user_id, emotion)
+    except Exception:
+        logger.exception("Failed to update analytics")
     
     # 11. Store conversation in SQLite
     db = SessionLocal()
-    if not req.conversation_id:
-        conv = Conversation(user_id=req.user_id)
-        db.add(conv)
+    conv_id = req.conversation_id or str(uuid.uuid4())
+    try:
+        if not req.conversation_id:
+            conv = Conversation(id=conv_id, user_id=req.user_id)
+            db.add(conv)
+            db.flush()
+        msg = Message(conversation_id=conv_id, role="user", content=req.message, emotion_scores=emotion, safety_flags=safety)
+        db.add(msg)
+        msg2 = Message(conversation_id=conv_id, role="assistant", content=response_text)
+        db.add(msg2)
         db.commit()
-        db.refresh(conv)
-        conv_id = conv.id
-    else:
-        conv_id = req.conversation_id
-    msg = Message(conversation_id=conv_id, role="user", content=req.message, emotion_scores=emotion, safety_flags=safety)
-    db.add(msg)
-    msg2 = Message(conversation_id=conv_id, role="assistant", content=response_text)
-    db.add(msg2)
-    db.commit()
-    db.close()
+    except Exception:
+        db.rollback()
+        logger.exception("Failed to store conversation")
+    finally:
+        db.close()
     
     return ChatResponse(
         response=response_text,
