@@ -6,7 +6,7 @@ pydantic==2.5.0
 pydantic-settings==2.1.0
 
 # Database & Vector
-chromadb==0.3.26
+chromadb==0.4.22
 sqlalchemy==2.0.23
 aiosqlite==0.19.0
 asyncpg==0.29.0
@@ -17,8 +17,8 @@ tiktoken==0.5.2
 
 # Emotion Detection (RoBERTa/DeBERTa)
 torch==2.0.1
-transformers==4.22.1
-detoxify==0.5.1
+transformers==4.25.0
+detoxify==0.6.0
 
 # Utilities
 aiofiles==23.2.1
