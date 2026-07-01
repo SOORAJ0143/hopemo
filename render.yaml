@@ -26,6 +26,6 @@ services:
           name: hopemo-db
           property: connectionString
     disk:
-      - name: chroma-data
-        mountPath: /data
-        sizeGB: 1
+      name: chroma-data
+      mountPath: /data
+      sizeGB: 1
