@@ -1,19 +1,36 @@
-httpx==0.24.1
-chromadb==0.4.22
-torch==2.0.1
-transformers>=4.25.0
-git+https://github.com/unitaryai/detoxify.git
+# Core
 fastapi==0.104.1
 uvicorn[standard]==0.24.0
 python-dotenv==1.0.0
 pydantic==2.5.0
 pydantic-settings==2.1.0
+
+# Database & Vector
+chromadb==0.4.22
 sqlalchemy==2.0.23
-asyncpg==0.29.0
+aiosqlite==0.19.0
+
+# OpenAI
 openai==1.6.1
 tiktoken==0.5.2
+
+# Emotion Detection (RoBERTa/DeBERTa)
+torch==2.1.0
+transformers==4.36.0
+detoxify==0.5.1
+
+# Utilities
+aiofiles==23.2.1
 tenacity==8.2.3
 numpy==1.24.3
 scikit-learn==1.3.2
+
+# Document parsing
 pypdf==3.17.0
+python-docx==1.1.0
+
+# Fine-tuning (optional)
+datasets==2.15.0
+
+# Monitoring
 sentry-sdk==1.38.0
