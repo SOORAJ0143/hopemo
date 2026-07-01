@@ -17,8 +17,8 @@ tiktoken==0.5.2
 
 # Emotion Detection (RoBERTa/DeBERTa)
 torch==2.0.1
-transformers==4.25.0
-detoxify==0.6.0
+transformers>=4.25.0
+git+https://github.com/unitaryai/detoxify.git
 
 # Utilities
 aiofiles==23.2.1
