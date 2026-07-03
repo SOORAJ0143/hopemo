@@ -15,7 +15,7 @@ openai==1.6.1
 tiktoken==0.5.2
 
 # Emotion Detection (RoBERTa/DeBERTa)
-torch==2.1.0
+torch
 transformers==4.36.0
 detoxify==0.5.1
 
