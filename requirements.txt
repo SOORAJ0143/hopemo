@@ -15,8 +15,8 @@ openai==1.6.1
 tiktoken==0.5.2
 
 # Emotion Detection (RoBERTa/DeBERTa)
-torch==2.0.1
-transformers==4.36.0
+torch==2.3.0
+transformers==4.22.1
 detoxify==0.5.1
 
 # Utilities
@@ -34,3 +34,4 @@ datasets==2.15.0
 
 # Monitoring
 sentry-sdk==1.38.0
+httpx==0.24.1
