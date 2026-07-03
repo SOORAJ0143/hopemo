@@ -7,6 +7,7 @@ pydantic-settings
 chromadb
 sqlalchemy
 aiosqlite
+psycopg2-binary
 
 openai
 tiktoken
