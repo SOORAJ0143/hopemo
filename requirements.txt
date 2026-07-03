@@ -1,37 +1,25 @@
-# Core
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-python-dotenv==1.0.0
-pydantic==2.5.0
-pydantic-settings==2.1.0
+fastapi
+uvicorn[standard]
+python-dotenv
+pydantic
+pydantic-settings
 
-# Database & Vector
-chromadb==0.4.22
-sqlalchemy==2.0.23
-aiosqlite==0.19.0
+chromadb
+sqlalchemy
+aiosqlite
 
-# OpenAI
-openai==1.6.1
-tiktoken==0.5.2
+openai
+tiktoken
 
-# Emotion Detection (RoBERTa/DeBERTa)
-torch==2.3.0
-transformers==4.22.1
-detoxify==0.5.1
+torch
+transformers
+detoxify
+httpx
 
-# Utilities
-aiofiles==23.2.1
-tenacity==8.2.3
-numpy==1.24.3
-scikit-learn==1.3.2
-
-# Document parsing
-pypdf==3.17.0
-python-docx==1.1.0
-
-# Fine-tuning (optional)
-datasets==2.15.0
-
-# Monitoring
-sentry-sdk==1.38.0
-httpx==0.24.1
+aiofiles
+tenacity
+numpy
+scikit-learn
+pypdf
+python-docx
+sentry-sdk
