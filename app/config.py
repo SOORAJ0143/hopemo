@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     CHROMA_PERSIST_DIR: str = "./data/chromadb"
     USE_PINECONE: bool = False
     HF_TOKEN: Optional[str] = None 
+    DATABASE_URL: str = "sqlite:///./data/hopemo.db"
 
     # V2 STANDARD WAY:
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")

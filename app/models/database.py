@@ -4,9 +4,10 @@ from sqlalchemy.orm import declarative_base
 from sqlalchemy.orm import sessionmaker
 import uuid
 import os
+from app.config import settings
 from datetime import datetime
 # Read DATABASE_URL from environment (Render sets this automatically)
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/hopemo.db")
+DATABASE_URL = settings.DATABASE_URL  
 
 # Configure engine based on database type
 if DATABASE_URL.startswith("postgresql"):

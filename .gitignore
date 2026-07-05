@@ -1,19 +1,26 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
+# Secrets & Environment variables
+.env
+.env.local
+.env.*.local
+
+# Python / Virtual Environment
 venv/
 env/
-*.env
-.env
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Databases
-*.db
-*.sqlite3
-data/chromadb/
-chroma.sqlite3
-
-# IDE
+# IDE & OS
 .vscode/
 .idea/
+.DS_Store
+
+# Database & ChromaDB data (optional but recommended)
+*.db
+*.sqlite3
+*.sqlite
+data/
+chroma_data/
+chromadb/

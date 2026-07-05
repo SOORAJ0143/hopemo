@@ -1,6 +1,9 @@
 # scripts/ingest_knowledge.py
-import asyncio
 import os
+import asyncio
+from dotenv import load_dotenv
+load_dotenv()
+
 from app.engines.rag.retriever import VectorStore
 from app.services.embedding import get_embedding
 from app.engines.knowledge.ingestor import KnowledgeIngestor  # create simple ingestor
