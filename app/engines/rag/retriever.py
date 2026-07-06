@@ -1,4 +1,5 @@
 # app/engines/rag/retriever.py
+import os
 import chromadb
 from chromadb.config import Settings
 import asyncio
@@ -14,19 +15,27 @@ logger = logging.getLogger(__name__)
 class VectorStore:
     def __init__(self):
         chroma_settings = Settings(anonymized_telemetry=False)
+        # Read persistent directory from environment, with fallback
+        persist_dir = os.getenv("CHROMA_PERSIST_DIR", "./data/chromadb")
         try:
+            # Ensure the directory exists
+            os.makedirs(persist_dir, exist_ok=True)
             self.client = chromadb.PersistentClient(
-                path=settings.CHROMA_PERSIST_DIR,
+                path=persist_dir,
                 settings=chroma_settings
             )
             self.persistent = True
-        except Exception:
-            logger.exception("Persistent ChromaDB failed to start; using in-memory ChromaDB")
+            logger.info(f"✅ ChromaDB persistent client initialized at: {persist_dir}")
+        except Exception as e:
+            logger.exception(f"Persistent ChromaDB failed: {e}. Falling back to in-memory.")
             self.client = chromadb.EphemeralClient(settings=chroma_settings)
             self.persistent = False
+        
         self.memory_collection = self.client.get_or_create_collection("user_memories")
         self.knowledge_collection = self.client.get_or_create_collection("knowledge_base")
         self.executor = ThreadPoolExecutor(max_workers=4)
+    
+    # ... (the rest of your methods remain unchanged)
     
     async def upsert(self, user_id: str, text: str, embedding: List[float], metadata: dict):
         def _upsert():
