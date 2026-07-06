@@ -2,6 +2,7 @@
 # app/config.py
 from pydantic_settings import BaseSettings, SettingsConfigDict  # <-- IMPORT THIS
 from typing import Optional
+import os
 
 class Settings(BaseSettings):
     APP_NAME: str = "HOPEMO"
@@ -18,6 +19,8 @@ class Settings(BaseSettings):
     USE_PINECONE: bool = False
     HF_TOKEN: Optional[str] = None 
     DATABASE_URL: str = "sqlite:///./data/hopemo.db"
+    DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./hopemo.db")
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
     # V2 STANDARD WAY:
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")

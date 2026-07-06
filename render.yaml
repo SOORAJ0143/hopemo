@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: hopemo-backend
+    runtime: python
+    plan: starter   # Use "starter" ($7/mo) to avoid sleeping and get enough RAM
+    region: oregon  # MUST match the region you chose for your PostgreSQL!
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: OPENAI_API_KEY
+        sync: false   # You will paste this manually during deployment
+      - key: DATABASE_URL
+        fromDatabase:
+          name: hopemo-db          # ⚠️ MUST match the name in Phase 1
+          property: connectionString
+      - key: CHROMA_PERSIST_DIR
+        value: /opt/render/project/src/data/chromadb
+      - key: ENVIRONMENT
+        value: production
+      - key: PYTHON_VERSION
+        value: 3.10.13
+    disks:
+      - name: chromadb-data
+        mountPath: /opt/render/project/src/data
+        sizeGB: 5
