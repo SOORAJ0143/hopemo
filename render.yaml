@@ -19,7 +19,7 @@ services:
         value: production
       - key: PYTHON_VERSION
         value: 3.10.13
-        disks:
+    disks:
       - name: chromadb-data
         mountPath: /opt/render/project/src/data
         sizeGB: 5
