@@ -11,15 +11,15 @@ services:
         sync: false
       - key: DATABASE_URL
         fromDatabase:
-          name: hopemo-db          # ✅ Indented under fromDatabase
+          name: hopemo-db
           property: connectionString
       - key: CHROMA_PERSIST_DIR
-        value: /opt/render/project/src/data/chromadb   # ✅ Fixed path: render (not ender)
+        value: /opt/render/project/src/data/chromadb
       - key: ENVIRONMENT
         value: production
       - key: PYTHON_VERSION
         value: 3.10.13
-    disks:                         # ✅ Now indented under the service (same level as envVars)
+    disks:
       - name: chromadb-data
         mountPath: /opt/render/project/src/data
         sizeGB: 5
